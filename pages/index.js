@@ -1,52 +1,51 @@
+import Container from "../components/container"
+import MoreStories from "../components/more-stories"
+import HeroPost from "../components/hero-post"
+import Intro from "../components/intro"
+import Layout from "../components/layout"
+import { getAllPosts } from "../lib/api"
 import Head from "next/head"
-import Layout, { siteTitle } from "../components/layout"
-import utilStyles from "../styles/utils.module.css"
-import Link from 'next/link'
-import Date from '../components/date'
+import { CMS_NAME } from "../lib/constants"
 
-import { getSortedPostsData } from "../lib/posts"
-
-// import someDatabaseSDK from 'someDataBaseSDK'
-// const databaseClient = someDatabaseSDK.createClient(...)
-
-export async function getStaticProps() {
-  const allPostsData = getSortedPostsData()
-  return {
-    props: {
-      allPostsData
-    }
-  }
-
-  // fetch post data form an external API endpoint
-  // const res = swait fetch('..')
-  // return res.json()
-  // Next.js`fetch()`在客户端和服务器上都使用polyfill，不需要在导入它
-
-  // 直接查询数据库
-  // return databaseClient.query('SELECT posts...')
+export default function Index({ allPosts }) {
+  const heroPost = allPosts[0]
+  const morePosts = allPosts.slice(1)
+  return (
+    <>
+      <Layout>
+        <Head>
+          <title>Next.js Blog Example with {CMS_NAME}</title>
+        </Head>
+        <Container>
+          <Intro />
+          {heroPost && (
+            <HeroPost
+              title={heroPost.title}
+              coverImage={heroPost.coverImage}
+              date={heroPost.date}
+              author={heroPost.author}
+              slug={heroPost.slug}
+              excerpt={heroPost.excerpt}
+            />
+          )}
+          {morePosts.length > 0 && <MoreStories posts={morePosts} />}
+        </Container>
+      </Layout>
+    </>
+  )
 }
 
-export default function Home({allPostsData}) {
-  return (
-    <Layout home>
-      {/* Keep the existing code here */}
-      {/* Add this <section> tag below the existing <section> tag */}
-      <section className={`${utilStyles.headingMd} ${utilStyles.padding1px}`}>
-        <h2 className={utilStyles.headingLg}>Blog</h2>
-        <ul className={utilStyles.list}>
-          {allPostsData.map(({ id, date, title }) => (
-            <li className={utilStyles.listItem} key={id}>
-              <Link href={`/posts/${id}`}>
-                <a>{title}</a>
-              </Link>
-              <br/>
-              <small className={utilStyles.lightText}>
-                <Date dateString={date} />
-              </small>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </Layout>
-  )
+export async function getStaticProps() {
+  const allPosts = getAllPosts([
+    "title",
+    "date",
+    "slug",
+    "author",
+    "coverImage",
+    "excerpt"
+  ])
+
+  return {
+    props: { allPosts }
+  }
 }
